@@ -17,6 +17,7 @@ CWD = parent = Path(__file__).resolve().parent
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("-c", default="config.yaml", action="store", dest="config_file", help="path to the config file")
 parser.add_argument("-v", default=False, action="store_true", dest="verbose", help="Output verbose log information to the console")
+parser.add_argument("--send-no-errors", default=False, action="store_true", dest="send_no_errors", help="Send an email even if there were no errors")
 parser.add_argument("--no-send-email", default=True, action="store_false", dest="send_email", help="Write the report to stdout instead of sending it by email")
 parser.add_argument("--set-exit-code", default=False, action="store_true", dest="set_exit_code", help="Sets non-standard exit codes, see the README for details")
 
@@ -54,7 +55,7 @@ if args.verbose:
 status = Status.load()
 all_repos = []
 error_count = 0
-generate_report = False
+generate_report = args.send_no_errors
 for repo in config["repositories"]:
     logging.debug("Processing repo: %s", repo)
     repo_info = RepoInfo.create(repo, status.last_run)
