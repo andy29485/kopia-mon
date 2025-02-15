@@ -1,3 +1,14 @@
+#!/usr/bin/env -S uv run -q
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#     "dataclasses-json",
+#     "Jinja2",
+#     "python-dateutil",
+#     "PyYAML",
+# ]
+# ///
+
 import argparse
 import logging
 import yaml
