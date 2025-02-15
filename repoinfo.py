@@ -41,7 +41,14 @@ class RepoInfo:
                     self.last_modified_file.time = file_time
 
     def _update(self) -> Self:
-        if len(self.snapshots) == 0 and (datetime.now(tz=timezone.utc) - self.last_snapshot).total_seconds() > self.config["inactivity_days"]*3600*24:
+        now = datetime.now(tz=timezone.utc)
+        since_last = (now - self.last_snapshot).total_seconds()
+        max_time = 0
+        max_time += self.config.get("inactivity_weeks",   0)*3600*24*7
+        max_time += self.config.get("inactivity_days",    0)*3600*24
+        max_time += self.config.get("inactivity_hours",   0)*3600
+        max_time += self.config.get("inactivity_minutes", 0)*60
+        if len(self.snapshots) == 0 and since_last > max_time:
             self.inactivity_error = True
             if self.config["validate_inactivity"]:
                 self.last_modified_file = FileInfo() #{ "path": None, "time": None }
@@ -69,7 +76,7 @@ class RepoInfo:
             start_time = dateutil.parser.isoparse(snapshot["startTime"])
             if start_time > repo.last_snapshot:
                 repo.last_snapshot = start_time
-            if min_time is None or start_time > min_time :
+            if min_time is None or start_time > min_time:
                 if snapshot["stats"]["errorCount"] > 0:
                     repo.error_count += 1
                     show = kopia.get_show_obj(snapshot["rootEntry"]["obj"])
