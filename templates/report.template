@@ -38,7 +38,7 @@ td.last {
     border-bottom: 1px solid;
 }
 .errors {
-    background-color: #FF5050 !important;
+    background-color: #CC4240 !important;
 }
 
 details > summary i.marker {
@@ -88,13 +88,30 @@ summary::-webkit-details-marker {
         {% set host = host_user.0 %}
         {% set user = host_user.1 %}
         {% for path, path_snapshots in host_snapshots | groupby("source.path") %}
+            {% set path_info = namespace(error_count=0) %}
+            {% for snapshot in path_snapshots %}
+                {% if snapshot.stats.errorCount > path_info.error_count %}
+                    {% set path_info.error_count = path_info.error_count + 1 %}
+                {% endif %}
+            {% endfor %}
+            {% if path_info.error_count > 0 %}
+<details open>
+            {% else %}
 <details>
+            {% endif %}
     <summary>
         <table>
+            {% if path_info.error_count > 0 %}
+            <tr class="section-header"><td colspan="4" class="errors">
+                <i class="marker"></i>
+                {{user}}@{{host}} - {{path}}
+            </td></tr>
+            {% else %}
             <tr class="section-header"><td colspan="4">
                 <i class="marker"></i>
                 {{user}}@{{host}} - {{path}}
             </td></tr>
+            {% endif %}
         </table>
     </summary>
     <table>
