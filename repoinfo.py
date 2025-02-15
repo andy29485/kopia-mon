@@ -27,6 +27,7 @@ class RepoInfo:
     last_modified_file:FileInfo = None
     should_render:bool = False
     hosts:set[str] = field(default_factory=lambda: set())
+    path_last_updated:dict = field(default_factory=lambda: None)
 
     def _update_last_modified_file(self) -> None:
         hostname = platform.node().lower()
@@ -56,6 +57,10 @@ class RepoInfo:
                 if self.last_modified_file.time < self.last_snapshot:
                     self.inactivity_error = False
 
+        for path_time in self.path_last_updated.values():
+            if max_time < (now-path_time).total_seconds():
+                self.inactivity_error = True
+
         if (not self.config["errors_only"]) or self.error_count>0 or self.inactivity_error:
             self.should_render = True
         return self
@@ -66,6 +71,7 @@ class RepoInfo:
 
         kopia = KopiaApi(repo_conf["config-file"])
 
+        repo.path_last_updated = {}
         repo.status = kopia.get_repo_status()
         snapshots = kopia.get_snapshot_list()
         for snapshot in snapshots:
@@ -75,6 +81,10 @@ class RepoInfo:
                 repo.sources.append(source)
             repo.hosts.add(f"{source['host']}@{source['host']}")
             start_time = dateutil.parser.isoparse(snapshot["startTime"])
+            snapshot["st"] = start_time
+            k = (source["host"], source["userName"], source["path"])
+            if k not in repo.path_last_updated or start_time > repo.path_last_updated[k]:
+                repo.path_last_updated[k] = start_time
             if start_time > repo.last_snapshot:
                 repo.last_snapshot = start_time
             if min_time is None or start_time > min_time:

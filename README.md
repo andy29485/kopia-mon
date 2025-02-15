@@ -101,11 +101,17 @@ email:
     password: my_app_password
 repositories:
   - config-file: documents.config
+    inactivity_minutes: 0
+    inactivity_hours: 0
     inactivity_days: 2
+    inactivity_weeks: 0
     validate_inactivity: false
     errors_only: true
   - config-file: media.config
-    inactivity_days: 5
+    inactivity_minutes: 0
+    inactivity_hours: 35
+    inactivity_days: 0
+    inactivity_weeks: 0
     validate_inactivity: true
     errors_only: true
 ```
