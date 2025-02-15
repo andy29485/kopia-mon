@@ -129,7 +129,7 @@ input.fold{display:none;}
                 <td class="last">Backed Up Files</td>
             </tr>
 
-            {% for snapshot in path_snapshots %}
+            {% for snapshot in path_snapshots|sort(attribute="startTime",reverse=true) %}
                 {% set iloop = loop %}
                 {% include "snapshot.template" %}
             {% endfor %}
