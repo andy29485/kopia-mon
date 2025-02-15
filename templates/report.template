@@ -64,8 +64,6 @@ summary::-webkit-details-marker {
 <body>
 
 {% for repo in data if repo.should_render %}
-    {% set missed_backup = (now - repo.last_snapshot).total_seconds() > repo.config.inactivity_days*3600*24 and
-                                (repo.last_modified_file is none or repo.last_modified_file.time.astimezone() > repo.last_snapshot) %}
 <table>
     <tr class="repo-header {% if missed_backup %}errors{% endif %}">
     <td colspan="4">
@@ -88,30 +86,40 @@ summary::-webkit-details-marker {
         {% set host = host_user.0 %}
         {% set user = host_user.1 %}
         {% for path, path_snapshots in host_snapshots | groupby("source.path") %}
-            {% set path_info = namespace(error_count=0) %}
+            {% set path_info = namespace(error_count=0, last_snapshot=None) %}
             {% for snapshot in path_snapshots %}
                 {% if snapshot.stats.errorCount > path_info.error_count %}
                     {% set path_info.error_count = path_info.error_count + 1 %}
                 {% endif %}
+                {% if path_info.last_snapshot == None or snapshot.st > path_info.last_snapshot %}
+                    {% set path_info.last_snapshot = snapshot.st %}
+                {% endif %}
             {% endfor %}
-            {% if path_info.error_count > 0 %}
-<details open>
-            {% else %}
-<details>
-            {% endif %}
+    {% set path_inactivity = (now - path_info.last_snapshot).total_seconds() %}
+    {% set missed_backup = path_inactivity > 60*(
+            repo.config.inactivity_weeks*60*24*7
+            + repo.config.inactivity_days*60*24
+            + repo.config.inactivity_hours*60
+            + repo.config.inactivity_minutes
+        )
+    %}
+
+<details {% if path_info.error_count > 0 or missed_backup %}open{% endif %}>
     <summary>
         <table>
-            {% if path_info.error_count > 0 %}
-            <tr class="section-header"><td colspan="4" class="errors">
+            <tr class="section-header"><td colspan="4" {% if path_info.error_count > 0 %}class="errors"{% endif %}>
                 <i class="marker"></i>
                 {{user}}@{{host}} - {{path}}
-            </td></tr>
+        {% if missed_backup %}
+            {% if path_inactivity > 3600*24*1.5 %}
+                <b>(no backups for {{ (path_inactivity/3600/24) | round | int }} days)</b>
+            {% elif path_inactivity > 3600*1.5 %}
+                <b>(no backups for {{ (path_inactivity/3600) | round | int }} hours)</b>
             {% else %}
-            <tr class="section-header"><td colspan="4">
-                <i class="marker"></i>
-                {{user}}@{{host}} - {{path}}
-            </td></tr>
+                <b>(no backups for {{ (path_inactivity/60) | round | int }} minutes)</b>
             {% endif %}
+        {% endif %}
+            </td></tr>
         </table>
     </summary>
     <table>
