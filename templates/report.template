@@ -63,7 +63,7 @@ summary::-webkit-details-marker {
 </head>
 <body>
 
-{% for repo in data if repo.should_render %}
+{% for repo in data %}
 <table>
     <tr class="repo-header {% if missed_backup %}errors{% endif %}">
     <td colspan="4">
