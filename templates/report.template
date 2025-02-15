@@ -40,14 +40,33 @@ td.last {
 .errors {
     background-color: #FF5050 !important;
 }
+
+details > summary i.marker {
+  border: solid black;
+  border-width: 0 1px 1px 0;
+  display: inline-block;
+  padding: 3px;
+  margin-left: 5px;
+  transform: rotate(45deg);
+}
+details[open] > summary i.marker {
+  transform: rotate(-135deg);
+}
+summary {
+  list-style: none;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+
 </style>
 </head>
 <body>
-<table>
 
 {% for repo in data if repo.should_render %}
     {% set missed_backup = (now - repo.last_snapshot).total_seconds() > repo.config.inactivity_days*3600*24 and
                                 (repo.last_modified_file is none or repo.last_modified_file.time.astimezone() > repo.last_snapshot) %}
+<table>
     <tr class="repo-header {% if missed_backup %}errors{% endif %}">
     <td colspan="4">
         <div class="main-header">{{repo.status.clientOptions.description}}</div>
@@ -64,9 +83,21 @@ td.last {
         </div>
     </td>
     </tr>
-    {% for host, host_snapshots in repo.snapshots | groupby("source.host") %}
+</table>
+    {% for host_user, host_snapshots in repo.snapshots | groupby("source.from") %}
+        {% set host = host_user.0 %}
+        {% set user = host_user.1 %}
         {% for path, path_snapshots in host_snapshots | groupby("source.path") %}
-            <tr class="section-header"><td colspan="4">{% if repo.hosts | length > 1 %}{{ path_snapshots[0].source.userName }}@{{ path_snapshots[0].source.host }} : {% endif %}{{path}}</td></tr>
+<details>
+    <summary>
+        <table>
+            <tr class="section-header"><td colspan="4">
+                <i class="marker"></i>
+                {{user}}@{{host}} - {{path}}
+            </td></tr>
+        </table>
+    </summary>
+    <table>
             <tr class="column-headers">
                 <td class="first">Time</td>
                 <td>Duration</td>
@@ -78,10 +109,11 @@ td.last {
                 {% set iloop = loop %}
                 {% include "snapshot.template" %}
             {% endfor %}
+    </table>
+</details>
         {% endfor %}
     {% endfor %}
 
 {% endfor %}
-</table>
 </body>
 </html>

@@ -70,6 +70,7 @@ class RepoInfo:
         snapshots = kopia.get_snapshot_list()
         for snapshot in snapshots:
             source = snapshot["source"]
+            source["from"] = [source["host"], source["userName"]]
             if not any(s["host"]==source["host"] and s["path"]==source["path"] for s in repo.sources ):
                 repo.sources.append(source)
             repo.hosts.add(f"{source['host']}@{source['host']}")
