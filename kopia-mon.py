@@ -12,6 +12,8 @@ from emailutil import Email
 from repoinfo import RepoInfo
 from status import Status
 
+CWD = parent = Path(__file__).resolve().parent
+
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("-c", default="config.yaml", action="store", dest="config_file", help="path to the config file")
 parser.add_argument("-v", default=False, action="store_true", dest="verbose", help="Output verbose log information to the console")
@@ -28,7 +30,7 @@ def render(config:dict, data:list[dict]) -> str:
     if "." not in templateFile:
         templateFile += '.template'
 
-    env = Environment(loader=FileSystemLoader('templates'), lstrip_blocks=True, trim_blocks=True)
+    env = Environment(loader=FileSystemLoader(CWD/'templates'), lstrip_blocks=True, trim_blocks=True)
     env.filters["to_date"] = lambda value: dateutil.parser.isoparse(value)
     template = env.get_template(templateFile)
     template.globals['now'] = datetime.now(tz=timezone.utc)
