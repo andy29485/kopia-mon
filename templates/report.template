@@ -41,7 +41,7 @@ td.last {
     background-color: #CC4240 !important;
 }
 
-details > summary i.marker {
+label:has(input.fold) i.marker {
   border: solid black;
   border-width: 0 1px 1px 0;
   display: inline-block;
@@ -49,17 +49,16 @@ details > summary i.marker {
   margin-left: 5px;
   transform: rotate(45deg);
 }
-details[open] > summary i.marker {
+label:has(input.fold) {
+    display: block;
+}
+label:has(input.fold:checked) i.marker {
   transform: rotate(-135deg);
 }
-summary {
-  list-style: none;
-}
-summary::-webkit-details-marker {
-  display: none;
-}
-
+label:has(.fold:not(:checked)) + * { display: none; }
+input.fold{display:none;}
 </style>
+
 </head>
 <body>
 
@@ -104,8 +103,7 @@ summary::-webkit-details-marker {
         )
     %}
 
-<details {% if path_info.error_count > 0 or missed_backup %}open{% endif %}>
-    <summary>
+    <label>
         <table>
             <tr class="section-header"><td colspan="4" {% if path_info.error_count > 0 %}class="errors"{% endif %}>
                 <i class="marker"></i>
@@ -121,7 +119,8 @@ summary::-webkit-details-marker {
         {% endif %}
             </td></tr>
         </table>
-    </summary>
+        <input type="checkbox" class="fold" {% if path_info.error_count > 0 or missed_backup %}checked{% endif %}>
+    </label>
     <table>
             <tr class="column-headers">
                 <td class="first">Time</td>
@@ -135,7 +134,6 @@ summary::-webkit-details-marker {
                 {% include "snapshot.template" %}
             {% endfor %}
     </table>
-</details>
         {% endfor %}
     {% endfor %}
 
